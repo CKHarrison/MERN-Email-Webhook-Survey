@@ -26,18 +26,16 @@ passport.use(
       proxy: true
     },
     // once user information comes back from google we can save it
-    (accessToken, refreshToken, profile, done) => {
-      User.findOne({ googleId: profile.id }).then(existingUser => {
-        if (existingUser) {
-          // already have an existing user
-          done(null, existingUser);
-        } else {
-          // if we don't have an existing user
-          new User({ googleId: profile.id })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id });
+
+      if (existingUser) {
+        // already have an existing user, shortcut return
+        return done(null, existingUser);
+      }
+      // if we don't have an existing user
+      const user = await new User({ googleId: profile.id }).save();
+      done(null, user);
     }
   )
 );
